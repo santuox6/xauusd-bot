@@ -1,0 +1,2 @@
+# xauusd-bot
+fuck it
