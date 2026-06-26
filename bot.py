@@ -17,7 +17,7 @@ from typing import Optional
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
-import yfinance as yf
+import requests
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 BOT_TOKEN      = os.getenv("BOT_TOKEN", "")
@@ -39,32 +39,24 @@ logger = logging.getLogger(__name__)
 # PRICE FEED
 # ══════════════════════════════════════════════════════════════════════════════
 
-def get_price() -> Optional[float]:
-    """
-    Fetch the current XAUUSD price.
-    Tries XAUUSD=X (spot gold) first, then GC=F (Gold Futures) as fallback.
-    Returns None if both fail.
-    """
-    for symbol in PRICE_SYMBOLS:
-        try:
-            ticker  = yf.Ticker(symbol)
-            fast    = ticker.fast_info
-            price   = fast.get("last_price") or fast.get("regularMarketPrice")
+import requests
 
-            if price and float(price) > 500:          # gold is always > $500/oz
-                return round(float(price), 2)
+def get_price():
+    url = "https://api.bybit.com/v5/market/tickers"
 
-            # Fallback: pull recent 5-minute bars
-            hist = ticker.history(period="1d", interval="5m")
-            if not hist.empty:
-                p = float(hist["Close"].iloc[-1])
-                if p > 500:
-                    return round(p, 2)
+    params = {
+        "category": "spot",
+        "symbol": "XAUTUSDT"
+    }
 
-        except Exception as exc:
-            logger.warning("Price fetch failed (%s): %s", symbol, exc)
+    r = requests.get(url, params=params, timeout=10)
+    r.raise_for_status()
 
-    return None
+    data = r.json()
+
+    price = float(data["result"]["list"][0]["lastPrice"])
+
+    return price
 
 # ══════════════════════════════════════════════════════════════════════════════
 # DATABASE (SQLite — persists alerts across restarts)
