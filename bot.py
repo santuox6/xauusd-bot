@@ -4,7 +4,7 @@ XAUUSD Gold Price Alert Telegram Bot
 Tracks live gold prices and sends alerts when your target is hit.
 
 Setup:
-  export BOT_TOKEN="8615758611:AAGBJJnVw7HsL6S-ywIVuAmAABwVDnu6Gm8"
+  export BOT_TOKEN="your token"
   pip install -r requirements.txt
   python bot.py
 """
